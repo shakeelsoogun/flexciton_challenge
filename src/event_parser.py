@@ -56,9 +56,8 @@ def parse_line(line: str) -> Event:
         raise ParseLineException("Line is not structured correctly")
 
     try:
-        str_format = "YYYY/MM/DD HH:mm"
-        start_date = datetime.strptime(raw_start_date, str_format)
-        end_date = datetime.strptime(raw_end_date, str_format)
+        start_date = parse_date(raw_start_date)
+        end_date = parse_date(raw_end_date)
     except Exception as exception:
         raise ParseLineException("Dates are not formatted correctly") from exception
 
@@ -67,6 +66,10 @@ def parse_line(line: str) -> Event:
         "end_date": end_date,
         "name": second_split_parts[0],
     }
+
+
+def parse_date(potential_date: str) -> datetime:
+    return datetime.strptime(potential_date, "%Y/%m/%d %H:%M")
 
 
 class ParseLineException(Exception):
