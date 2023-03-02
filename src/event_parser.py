@@ -67,6 +67,9 @@ def parse_line(line: str) -> Optional[Event]:
         end_date = parse_date(raw_end_date)
     except Exception as exception:
         raise ParseLineException("Dates are not formatted correctly") from exception
+    
+    if end_date < start_date:
+        raise ParseLineException("End date is before start date")
 
     return {
         "start_date": start_date,
