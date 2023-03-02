@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 from event import Event
 
-from reschedule import date_is_inside_hours, does_events_overlap
+from reschedule import date_is_inside_hours, does_events_overlap, slot_into_schedule
 
 
 test_date = datetime(year=2023, month=3, day=2)
@@ -136,3 +136,52 @@ class TestDoesEventsOverlap:
             "end_date": end_date_2,
         }
         assert does_events_overlap(event_1, event_2) is True
+
+
+class TestSlotIntoSchedule:
+    def test_no_events(self):
+        event: Event = {
+            "start_date": test_date.replace(hour=9, minute=0),
+            "end_date": test_date.replace(hour=10, minute=0),
+            "name": "Event 1",
+        }
+        events = slot_into_schedule(event, [])
+        assert events == [event]
+
+    def test_slot_event_after_everything(self):
+        event: Event = {
+            "start_date": test_date.replace(hour=10, minute=0),
+            "end_date": test_date.replace(hour=11, minute=10),
+            "name": "Event 1",
+        }
+        event_2: Event = {
+            "start_date": test_date.replace(hour=9, minute=0),
+            "end_date": test_date.replace(hour=10, minute=10),
+            "name": "Event 2",
+        }
+        readjusted_event: Event = {
+            "start_date": test_date.replace(hour=10, minute=10),
+            "end_date": test_date.replace(hour=11, minute=20),
+            "name": "Event 1",
+        }
+        events = slot_into_schedule(event, [event_2])
+        assert events == [event_2, readjusted_event]
+
+    def test_slot_event_before_everything(self):
+        event: Event = {
+            "start_date": test_date.replace(hour=9, minute=0),
+            "end_date": test_date.replace(hour=10, minute=0),
+            "name": "Event 1",
+        }
+        event_2: Event = {
+            "start_date": test_date.replace(hour=11, minute=0),
+            "end_date": test_date.replace(hour=12, minute=10),
+            "name": "Event 2",
+        }
+        readjusted_event: Event = {
+            "start_date": test_date.replace(hour=10, minute=0),
+            "end_date": test_date.replace(hour=11, minute=0),
+            "name": "Event 1",
+        }
+        events = slot_into_schedule(event, [event_2])
+        assert events == [readjusted_event, event_2]

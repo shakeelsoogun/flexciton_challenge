@@ -53,7 +53,7 @@ def slot_into_schedule(event: Event, valid_events: list[Event]) -> list[Event]:
         are:
             - sorted in asc order
             - within the time constraints
-            - don't overlap each other. 
+            - don't overlap each other.
 
     Returns:
         list[Event]: A new schedule of events with the event slotted in.
@@ -68,9 +68,22 @@ def slot_into_schedule(event: Event, valid_events: list[Event]) -> list[Event]:
         if (
             event["start_date"] >= valid_event["start_date"]
             or event["start_date"] >= valid_event["end_date"]
-            or not previous_event
         ):
             continue
+
+        if not previous_event:
+            start_of_day = valid_event["start_date"].replace(hour=9, minute=0)
+            slot_duration = valid_event["start_date"] - start_of_day
+            if event_duration > slot_duration:
+                # Can't fit into this slot, move onto next
+                continue
+
+            new_event: Event = {
+                "start_date": valid_event["start_date"] - event_duration,
+                "end_date": valid_event["start_date"],
+                "name": event["name"],
+            }
+            return [new_event] + valid_events
 
         # valid_event is after our event, so try scheduling it in between
         # previous_event and valid_event
