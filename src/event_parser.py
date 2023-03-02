@@ -1,4 +1,6 @@
 from datetime import datetime
+import re
+from typing import Optional
 from event import Event
 
 
@@ -16,13 +18,15 @@ def parse_into_events(message: str) -> list[Event]:
     Returns:
         list[Event]: A list of Event dicts of processed data
     """
-    lines = message.splitlines()
+    lines = [x.strip() for x in message.splitlines()]
 
     errors = []
     events = []
     for line in lines:
         try:
-            events.append(parse_line(line))
+            event = parse_line(line)
+            if event:
+                events.append(event)
         except ParseLineException as e:
             errors.append(line)
 
@@ -32,7 +36,7 @@ def parse_into_events(message: str) -> list[Event]:
     return events
 
 
-def parse_line(line: str) -> Event:
+def parse_line(line: str) -> Optional[Event]:
     """Parses a single line of the format <start_date> -> <end_date> - <name>
     into a structured dict of properties. Dates must be in format
     YYYY/MM/DD HH:mm.
@@ -47,6 +51,9 @@ def parse_line(line: str) -> Event:
     Returns:
         Event: A structured dict of Event properties
     """
+    if not line or not re.match(r"[A-z0-9]", line):
+        return None
+
     raw_start_date, *first_split_parts = line.split(" -> ", maxsplit=1)
     if not raw_start_date or not first_split_parts:
         raise ParseLineException("Line is not structured correctly")
