@@ -112,7 +112,7 @@ def slot_into_schedule(event: Event, valid_events: list[Event]) -> list[Event]:
 
             if event_duration <= day_1_slot_duration:
                 slot_start = previous_event["end_date"]
-            if days_between:
+            elif days_between:
                 # We have some free days in between, so just pick the first day
                 slot_start = days_between[0].replace(hour=9, minute=0)
             elif event_duration <= day_2_slot_duration:
@@ -145,8 +145,8 @@ def slot_into_schedule(event: Event, valid_events: list[Event]) -> list[Event]:
             days=days_to_increment
         )
     new_event: Event = {
-        "start_date": last_valid_event["end_date"],
-        "end_date": last_valid_event["end_date"] + event_duration,
+        "start_date": next_start,
+        "end_date": next_start + event_duration,
         "name": event["name"],
     }
     return valid_events + [new_event]
@@ -197,9 +197,9 @@ def find_days_between_dates(date_1: datetime, date_2: datetime) -> list[datetime
         return []
 
     dates_in_between = []
-    for day_count in range(2, duration.days):
+    for day_count in range(1, duration.days + 1):
         date_to_check = date_1 + timedelta(days=day_count)
-        if date_to_check.isoweekday() in [6, 7]:
+        if date_to_check.isoweekday() in [6, 7] or date_to_check.day == date_2.day:
             continue
         dates_in_between.append(date_to_check)
 
