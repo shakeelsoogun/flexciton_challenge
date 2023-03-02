@@ -1,10 +1,10 @@
 from datetime import datetime
 import re
 from typing import Optional
-from event import Event
+from calendar_event import CalendarEvent
 
 
-def parse_into_events(message: str) -> list[Event]:
+def parse_into_events(message: str) -> list[CalendarEvent]:
     """Parses a multiline string into structured dicts for Event details. See
     parse_line for details on the structure needed for each line.
 
@@ -36,7 +36,7 @@ def parse_into_events(message: str) -> list[Event]:
     return events
 
 
-def parse_line(line: str) -> Optional[Event]:
+def parse_line(line: str) -> Optional[CalendarEvent]:
     """Parses a single line of the format <start_date> -> <end_date> - <name>
     into a structured dict of properties. Dates must be in format
     YYYY/MM/DD HH:mm.
@@ -67,7 +67,7 @@ def parse_line(line: str) -> Optional[Event]:
         end_date = parse_date(raw_end_date)
     except Exception as exception:
         raise ParseLineException("Dates are not formatted correctly") from exception
-    
+
     if end_date < start_date:
         raise ParseLineException("End date is before start date")
 

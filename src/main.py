@@ -1,11 +1,11 @@
-from datetime import datetime
 import sys
+from datetime import datetime
 from typing import Optional
 
 import click
-from event import Event
 
-from event_parser import ParseMessageException, parse_into_events, date_format_str
+from calendar_event import CalendarEvent
+from event_parser import ParseMessageException, date_format_str, parse_into_events
 from reschedule import adjust_event_schedule
 
 
@@ -38,7 +38,7 @@ def open_editor() -> Optional[str]:
     return message
 
 
-def parse_events(message: str) -> list[Event]:
+def parse_events(message: str) -> list[CalendarEvent]:
     try:
         events = parse_into_events(message)
     except ParseMessageException as exception:
@@ -50,7 +50,7 @@ def parse_events(message: str) -> list[Event]:
     return events
 
 
-def print_events(events: list[Event]):
+def print_events(events: list[CalendarEvent]):
     click.echo(f"Here are the {len(events)} that we've been able to schedule:")
     for event in events:
         start_date = date_to_str(event["start_date"])

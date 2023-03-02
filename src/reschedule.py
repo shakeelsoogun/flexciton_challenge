@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 from operator import itemgetter
-from event import Event
+from calendar_event import CalendarEvent
 
 
-def adjust_event_schedule(events: list[Event]) -> list[Event]:
+def adjust_event_schedule(events: list[CalendarEvent]) -> list[CalendarEvent]:
     """Filter for all events that validly fit within the time schedule
     (Mon-Fri 09:00-18:00) and don't overlap, and then try to refit all other
     events around these valid ones.
@@ -16,9 +16,6 @@ def adjust_event_schedule(events: list[Event]) -> list[Event]:
         and don't overlap
     """
     # First pass - find all the events that are already valid (prioritising first encountered)
-    # Invalid states:
-    #  - Outside of hours (Mon-Fri 9:00-18:00)
-    #  - Events overlap each other
     valid_events = []
     to_be_rescheduled = []
     for event in events:
@@ -43,7 +40,9 @@ def adjust_event_schedule(events: list[Event]) -> list[Event]:
     return sorted_events
 
 
-def slot_into_schedule(event: Event, valid_events: list[Event]) -> list[Event]:
+def slot_into_schedule(
+    event: CalendarEvent, valid_events: list[CalendarEvent]
+) -> list[CalendarEvent]:
     """Takes an event and existing valid schedule of events and finds the next
     available space where it can fit, as close to its original time as possible.
 
@@ -78,7 +77,7 @@ def slot_into_schedule(event: Event, valid_events: list[Event]) -> list[Event]:
                 # Can't fit into this slot, move onto next
                 continue
 
-            new_event: Event = {
+            new_event: CalendarEvent = {
                 "start_date": valid_event["start_date"] - event_duration,
                 "end_date": valid_event["start_date"],
                 "name": event["name"],
@@ -122,7 +121,7 @@ def slot_into_schedule(event: Event, valid_events: list[Event]) -> list[Event]:
                 continue
 
         # Found a slot, so fit the event in
-        new_event: Event = {
+        new_event: CalendarEvent = {
             "start_date": slot_start,
             "end_date": slot_start + event_duration,
             "name": event["name"],
@@ -144,7 +143,7 @@ def slot_into_schedule(event: Event, valid_events: list[Event]) -> list[Event]:
         next_start = next_start.replace(hour=9, minute=0) + timedelta(
             days=days_to_increment
         )
-    new_event: Event = {
+    new_event: CalendarEvent = {
         "start_date": next_start,
         "end_date": next_start + event_duration,
         "name": event["name"],
@@ -152,7 +151,7 @@ def slot_into_schedule(event: Event, valid_events: list[Event]) -> list[Event]:
     return valid_events + [new_event]
 
 
-def is_inside_hours(event: Event) -> bool:
+def is_inside_hours(event: CalendarEvent) -> bool:
     return date_is_inside_hours(event["start_date"]) and date_is_inside_hours(
         event["end_date"]
     )
@@ -170,7 +169,7 @@ def date_is_inside_hours(date: datetime) -> bool:
 #    - start_date occurs within the time of another event (after start_date and before end_date)
 #    - end_date occurs within the time of another event (after start_date and before end_date)
 #    - event has another event occurring within it (1.start_date is before 2.start_date, and 1.end_date is after 2.end_date)
-def does_events_overlap(event_1: Event, event_2: Event) -> bool:
+def does_events_overlap(event_1: CalendarEvent, event_2: CalendarEvent) -> bool:
     is_start_date_2_in_time_1 = (
         event_2["start_date"] >= event_1["start_date"]
         and event_2["start_date"] < event_1["end_date"]
