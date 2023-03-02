@@ -6,7 +6,7 @@ import click
 from event import Event
 
 from event_parser import ParseMessageException, parse_into_events, date_format_str
-from reschedule import reschedule
+from reschedule import adjust_event_schedule
 
 
 def display_welcome() -> bool:
@@ -75,7 +75,7 @@ def main():
     events = parse_events(message)
     click.echo(f"You gave us {len(events)} events.")
 
-    scheduled_events = reschedule(events)
+    scheduled_events = adjust_event_schedule(events)
     print_events(scheduled_events)
 
 
