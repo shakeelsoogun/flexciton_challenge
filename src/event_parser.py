@@ -75,8 +75,11 @@ def parse_line(line: str) -> Optional[Event]:
     }
 
 
+date_format_str = "%Y/%m/%d %H:%M"
+
+
 def parse_date(potential_date: str) -> datetime:
-    return datetime.strptime(potential_date, "%Y/%m/%d %H:%M")
+    return datetime.strptime(potential_date, date_format_str)
 
 
 class ParseLineException(Exception):

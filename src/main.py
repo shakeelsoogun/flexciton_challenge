@@ -1,9 +1,12 @@
+from datetime import datetime
 import sys
 from typing import Optional
 
 import click
+from event import Event
 
-from event_parser import ParseMessageException, parse_into_events
+from event_parser import ParseMessageException, parse_into_events, date_format_str
+from reschedule import reschedule
 
 
 def display_welcome() -> bool:
@@ -35,6 +38,30 @@ def open_editor() -> Optional[str]:
     return message
 
 
+def parse_events(message: str) -> list[Event]:
+    try:
+        events = parse_into_events(message)
+    except ParseMessageException as exception:
+        click.echo(f"There are errors with these lines of input:")
+        for line, error in exception.lines_and_errors:
+            click.echo(f'"{line}" - {error}')
+        sys.exit(1)
+
+    return events
+
+
+def print_events(events: list[Event]):
+    click.echo(f"Here are the {len(events)} that we've been able to schedule:")
+    for event in events:
+        start_date = date_to_str(event["start_date"])
+        end_date = date_to_str(event["end_date"])
+        click.echo(f'{start_date} -> {end_date} - {event["name"]}')
+
+
+def date_to_str(date: datetime) -> str:
+    return date.strftime(date_format_str)
+
+
 @click.command()
 def main():
     should_proceed = display_welcome()
@@ -45,15 +72,11 @@ def main():
     if not message:
         sys.exit(1)
 
-    try:
-        events = parse_into_events(message)
-    except ParseMessageException as exception:
-        click.echo(f"There are errors with these lines of input:")
-        for line, error in exception.lines_and_errors:
-            click.echo(f'"{line}" - {error}')
-        sys.exit(1)
-
+    events = parse_events(message)
     click.echo(f"You gave us {len(events)} events.")
+
+    scheduled_events = reschedule(events)
+    print_events(scheduled_events)
 
 
 if __name__ == "__main__":
