@@ -1,8 +1,9 @@
+import sys
+from typing import Optional
+
 import click
 
-
-def parse(line: str) -> list[str]:
-    return line.split("\n")
+from event_parser import ParseMessageException, parse_into_events
 
 
 def display_welcome() -> bool:
@@ -24,18 +25,35 @@ def display_welcome() -> bool:
     return should_proceed
 
 
-@click.command()
-def main():
-    display_welcome()
+def open_editor() -> Optional[str]:
     message = click.edit(
         "2022/08/23 15:00 -> 2022/08/23 16:00 - Example event, please replace with yours!"
     )
     if not message:
         click.echo("You didn't provide any events to process!")
-        return
 
-    lines = parse(message)
-    click.echo(f"You gave us {len(lines)} lines.")
+    return message
+
+
+@click.command()
+def main():
+    should_proceed = display_welcome()
+    if not should_proceed:
+        sys.exit(1)
+
+    message = open_editor()
+    if not message:
+        sys.exit(1)
+
+    try:
+        events = parse_into_events(message)
+    except ParseMessageException as exception:
+        click.echo(f"There are errors with these lines of input:")
+        for line, error in exception.lines_and_errors:
+            click.echo(f'"{line}" - {error}')
+        sys.exit(1)
+
+    click.echo(f"You gave us {len(events)} events.")
 
 
 if __name__ == "__main__":
